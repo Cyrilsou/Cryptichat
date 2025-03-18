@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Location Tracker avec Supabase</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+    }
+    .tracker {
+      max-width: 600px;
+      margin: 50px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    h1 { text-align: center; }
+    p { line-height: 1.6; }
+  </style>
+  <!-- Inclusion du client Supabase via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="tracker">
+    <h1>Location Tracker avec Supabase</h1>
+    <div id="result">Récupération de la localisation...</div>
+  </div>
+
+  <script>
+    const resultDiv = document.getElementById('result');
+
+    // Remplacez ces valeurs par l'URL et la clé "anon" de votre projet Supabase
+    const supabaseUrl = 'https://tqubhbumfvpmyipnneel.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxdWJoYnVtZnZwbXlpcG5uZWVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MTQxMzYsImV4cCI6MjA1NzI5MDEzNn0.eimziqYw0shMxzyCFvMM7jHE7aH4_yt0PY_VlmdHCqc';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Fonction pour insérer les données de géolocalisation précise
+    function insertGeoPrecise(latitude, longitude, accuracy) {
+      supabaseClient
+        .from('geo_precise')
+        .insert([{ latitude, longitude, accuracy }])
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Erreur insertion geo_precise:', error);
+            resultDiv.innerHTML += `<p style="color:red;">Erreur lors de l'insertion (geo_precise).</p>`;
+          } else {
+            console.log('Données geo_precise insérées:', data);
+            resultDiv.innerHTML += `<p style="color:green;">Localisation précise enregistrée.</p>`;
+          }
+        });
+    }
+
+    // Fonction pour insérer les données de géolocalisation par IP
+    function insertGeoIP(ip, country, region, city, zip, latitude, longitude, isp) {
+      supabaseClient
+        .from('geo_ip')
+        .insert([{ ip, country, region, city, zip, latitude, longitude, isp }])
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Erreur insertion geo_ip:', error);
+            resultDiv.innerHTML += `<p style="color:red;">Erreur lors de l'insertion (geo_ip).</p>`;
+          } else {
+            console.log('Données geo_ip insérées:', data);
+            resultDiv.innerHTML += `<p style="color:green;">Localisation par IP enregistrée.</p>`;
+          }
+        });
+    }
+
+    // Fonction pour gérer la géolocalisation précise via l'API HTML5
+    function showGeoPrecise(position) {
+      const { latitude, longitude, accuracy } = position.coords;
+      // Arrondir l'accuracy à l'entier le plus proche
+      const accuracyRounded = Math.round(accuracy);
+      
+      resultDiv.innerHTML = `
+        <h2>Géolocalisation Précise</h2>
+        <p><strong>Latitude :</strong> ${latitude}</p>
+        <p><strong>Longitude :</strong> ${longitude}</p>
+        <p><strong>Précision :</strong> ${accuracyRounded} mètres</p>
+      `;
+      insertGeoPrecise(latitude, longitude, accuracyRounded);
+    }
+
+    // Fonction fallback pour la géolocalisation par IP
+    function fallbackGeoIP() {
+      // Remarque : ip-api.com fonctionne en HTTP ; pour une application en production en HTTPS, envisagez un service compatible HTTPS.
+      fetch('http://ip-api.com/json/')
+        .then(response => response.json())
+        .then(data => {
+          if (data.status !== 'success') throw new Error('Erreur IP');
+          resultDiv.innerHTML = `
+            <h2>Géolocalisation par IP</h2>
+            <p><strong>IP :</strong> ${data.query}</p>
+            <p><strong>Pays :</strong> ${data.country}</p>
+            <p><strong>Région :</strong> ${data.regionName}</p>
+            <p><strong>Ville :</strong> ${data.city}</p>
+            <p><strong>Code Postal :</strong> ${data.zip}</p>
+            <p><strong>Latitude :</strong> ${data.lat}</p>
+            <p><strong>Longitude :</strong> ${data.lon}</p>
+            <p><strong>ISP :</strong> ${data.isp}</p>
+          `;
+          insertGeoIP(
+            data.query,
+            data.country,
+            data.regionName,
+            data.city,
+            data.zip,
+            data.lat,
+            data.lon,
+            data.isp
+          );
+        })
+        .catch(err => {
+          console.error("Erreur lors de l'appel à l'API IP:", err);
+          resultDiv.innerHTML += `<p style="color:red;">Erreur lors de la récupération des données IP.</p>`;
+        });
+    }
+
+    // Tente d'obtenir la géolocalisation précise via l'API HTML5
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        showGeoPrecise,
+        error => {
+          console.warn('Erreur de géolocalisation:', error.message);
+          fallbackGeoIP();
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      resultDiv.innerHTML = `<p>La géolocalisation n'est pas supportée par ce navigateur. Utilisation de la méthode par IP.</p>`;
+      fallbackGeoIP();
+    }
+  </script>
+</body>
+</html>
