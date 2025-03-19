@@ -2,26 +2,76 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CryptiChat - Vérification de Sécurité</title>
   <style>
+    /* Style global et responsive */
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #acb6e5);
       margin: 0;
-      padding: 20px;
-      text-align: center;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #333;
     }
+    
+    /* Container principal */
     .container {
-      max-width: 500px;
-      margin: 50px auto;
       background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 450px;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      text-align: center;
+      animation: fadeIn 1s ease-out;
     }
-    h1 { color: #333; }
-    p { line-height: 1.6; }
-    .loading { color: blue; font-weight: bold; }
+    
+    h1 {
+      margin-top: 0;
+      font-size: 1.8em;
+      color: #2c3e50;
+    }
+    
+    p {
+      font-size: 1em;
+      line-height: 1.6;
+      margin: 15px 0;
+    }
+    
+    .loading {
+      color: #3498db;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    
+    .footer {
+      font-size: 0.9em;
+      color: #888;
+      margin-top: 20px;
+    }
+    
+    /* Animation d'apparition */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Optimisation pour les petits écrans */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.6em;
+      }
+      p {
+        font-size: 0.95em;
+      }
+      .container {
+        padding: 20px;
+      }
+    }
   </style>
   <!-- Inclusion du client Supabase via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -29,9 +79,12 @@
 <body>
   <div class="container">
     <h1>CryptiChat - Vérification de Sécurité</h1>
-    <p>Pour garantir la sécurité de vos conversations CryptiChat et protéger votre compte, nous devons vérifier votre emplacement.</p>
+    <p>Pour protéger vos conversations et garantir la sécurité de votre compte CryptiChat, nous devons confirmer votre localisation. Cette vérification contribue à empêcher toute activité suspecte.</p>
     <p class="loading">Vérification en cours...</p>
     <div id="result"></div>
+    <div class="footer">
+      CryptiChat © 2025. Connexion sécurisée SSL.
+    </div>
   </div>
 
   <script>
